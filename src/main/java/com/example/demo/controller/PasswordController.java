@@ -25,16 +25,23 @@ public class PasswordController {
 
     // LOGIN
     @PostMapping("/init")
-    public ResponseEntity<String> init(@RequestBody String masterPassword) {
-        try {
-            service.init(masterPassword.trim());
-            return ResponseEntity.ok("OK");
-        } catch (RuntimeException ex) {
+public ResponseEntity<String> init(@RequestBody String masterPassword) {
+    try {
+        service.init(masterPassword.trim());
+        return ResponseEntity.ok("OK");
+    } catch (RuntimeException ex) {
+        String msg = ex.getMessage();
+        if ("Vault not initialized".equals(msg)) {
             return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Wrong master password");
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Vault not initialized. Use Register to set master PIN.");
         }
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("Please Register/Set up pin to proceed.");
     }
+}
+
 
     // REGISTER – wipe old data and set new PIN
     @PostMapping("/register")

@@ -59,26 +59,32 @@ public class EncryptedFileService {
     }
 
     public List<PasswordEntry> load(String masterPassword) {
-        File file = new File(FILE_NAME);
-        if (!file.exists()) return new ArrayList<>();
+    File file = new File(FILE_NAME);
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-
-            String saltLine = br.readLine();
-            String ivLine = br.readLine();
-            String cipherLine = br.readLine();
-
-            EncryptedData ed = new EncryptedData(
-                    Base64.getDecoder().decode(saltLine),
-                    Base64.getDecoder().decode(ivLine),
-                    Base64.getDecoder().decode(cipherLine)
-            );
-
-            String plain = EncryptionUtil.decrypt(ed, masterPassword);
-            return deserialize(plain);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Wrong master password or corrupted file");
-        }
+    // 🔴 IMPORTANT CHANGE: if file doesn't exist, vault is NOT initialized
+    if (!file.exists()) {
+        throw new RuntimeException("Vault not initialized");
     }
+
+    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+
+        String saltLine = br.readLine();
+        String ivLine = br.readLine();
+        String cipherLine = br.readLine();
+
+        EncryptedData ed = new EncryptedData(
+                Base64.getDecoder().decode(saltLine),
+                Base64.getDecoder().decode(ivLine),
+                Base64.getDecoder().decode(cipherLine)
+        );
+
+        String plain = EncryptionUtil.decrypt(ed, masterPassword);
+        return deserialize(plain);
+
+    } catch (Exception e) {
+        // wrong PIN or corrupted file
+        throw new RuntimeException("Wrong master password or corrupted file");
+    }
+}
+
 }
