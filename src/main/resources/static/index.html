@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Java Password Manager</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #101827, #1f2937);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 10px;
+      color: #f9fafb;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: #111827;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      border: 1px solid rgba(156, 163, 175, 0.4);
+    }
+
+    .header {
+      padding: 18px 24px;
+      background: radial-gradient(circle at top left, #38bdf8, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #0b1120;
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-title span.logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e5e7eb;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .header-sub { font-size: 12px; opacity: 0.9; }
+
+    .nav {
+      display: flex;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .nav button {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: 0.18s ease;
+    }
+
+    .nav button span.step {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .nav button.active {
+      color: #e5e7eb;
+      border-bottom-color: #38bdf8;
+      background: linear-gradient(to bottom, #020617, #030712);
+    }
+
+    .nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .content { padding: 20px 22px 22px; }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title small {
+      font-size: 11px;
+      font-weight: 400;
+      color: #9ca3af;
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 16px 18px 18px;
+      border: 1px solid #1e293b;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .form-group { flex: 1; min-width: 180px; }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px 9px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      outline: none;
+      transition: 0.15s ease;
+    }
+
+    input::placeholder { color: #6b7280; }
+
+    input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+    }
+
+    .btn-row {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #111827;
+      color: #e5e7eb;
+      transition: 0.16s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, #38bdf8, #6366f1);
+      border-color: transparent;
+      color: #020617;
+    }
+
+    .btn-primary:hover { filter: brightness(1.08); }
+
+    .btn-secondary { border-color: #4b5563; }
+
+    .btn-secondary:hover { background: #0b1120; }
+
+    .btn-danger {
+      border-color: #f97373;
+      color: #fecaca;
+      background: #7f1d1d;
+    }
+
+    .badge-warning {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid #f97316;
+      color: #fed7aa;
+      margin-top: 8px;
+    }
+
+    #status {
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    #status.error { color: #fecaca; }
+    #status.success { color: #bbf7d0; }
+
+    .hidden { display: none; }
+
+    .search-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-row input { flex: 1; min-width: 180px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    th {
+      text-align: left;
+      color: #9ca3af;
+      font-weight: 500;
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:hover { background: rgba(15, 23, 42, 0.9); }
+
+    .empty {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .header { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .header-sub { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-title">
+      <span class="logo">PM</span>
+      Java Password Manager
+    </div>
+    <div class="header-sub">
+      Encrypted storage with master PIN
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="navAuth" class="active">
+      <span class="step">1</span> Login / Register
+    </button>
+    <button id="navManage" disabled>
+      <span class="step">2</span> Add / Update
+    </button>
+    <button id="navView" disabled>
+      <span class="step">3</span> View Passwords
+    </button>
+  </div>
+
+  <div class="content">
+    <div id="status"></div>
+
+    <!-- PAGE 1: AUTH -->
+    <div id="page-auth">
+      <div class="section-title">
+        Login / Register
+        <small>Secure your vault with a single master PIN.</small>
+      </div>
+      <div class="card">
+        <div class="form-group">
+          <label for="masterInput">Master PIN / Password</label>
+          <input type="password" id="masterInput" placeholder="Enter master PIN to login or register">
+        </div>
+        <div class="btn-row">
+          <button id="btnLogin" class="btn btn-primary">Login</button>
+          <button id="btnRegister" class="btn btn-secondary">Register / Set PIN</button>
+          <button id="btnLogout" class="btn btn-secondary" disabled>Logout</button>
+        </div>
+        <div class="badge-warning">
+          Register will wipe existing stored passwords and set a new master PIN.
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: ADD / UPDATE PASSWORD -->
+    <div id="page-manage" class="hidden">
+      <div class="section-title">
+        Add / Update Password
+        <small>Store or modify a site, username and password.</small>
+      </div>
+      <div class="card">
+        <div id="editInfo" class="badge-warning hidden">
+          Editing existing entry. Click “Cancel edit” to go back to add mode.
+        </div>
+
+        <div class="form-row" style="margin-top: 10px;">
+          <div class="form-group">
+            <label for="siteInput">Site / App</label>
+            <input type="text" id="siteInput" placeholder="e.g. gmail.com">
+          </div>
+          <div class="form-group">
+            <label for="userInput">Username / Email</label>
+            <input type="text" id="userInput" placeholder="e.g. you@example.com">
+          </div>
+          <div class="form-group">
+            <label for="passInput">Password</label>
+            <input type="text" id="passInput" placeholder="e.g. MyStrongP@ss123">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button id="addBtn" class="btn btn-primary">Save Password</button>
+          <button id="cancelEditBtn" class="btn btn-secondary hidden">Cancel edit</button>
+          <button id="goToViewBtn" class="btn btn-secondary">Go to list</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: VIEW PASSWORDS -->
+    <div id="page-view" class="hidden">
+      <div class="section-title">
+        All Passwords
+        <small>Search, edit and delete entries.</small>
+      </div>
+      <div class="card">
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="Search by site or username">
+        </div>
+
+        <table>
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Site</th>
+            <th>Username</th>
+            <th>Password</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody id="passwordTableBody"></tbody>
+        </table>
+
+        <div id="emptyMsg" class="empty hidden">
+          No passwords stored yet. Add one from the “Add / Update” tab.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let passwords = [];
+  let initialized = false;
+  let editingIndex = null;
+
+  const navAuth = document.getElementById('navAuth');
+  const navManage = document.getElementById('navManage');
+  const navView = document.getElementById('navView');
+
+  const pageAuth = document.getElementById('page-auth');
+  const pageManage = document.getElementById('page-manage');
+  const pageView = document.getElementById('page-view');
+
+  const masterInput = document.getElementById('masterInput');
+  const btnLogin = document.getElementById('btnLogin');
+  const btnRegister = document.getElementById('btnRegister');
+  const btnLogout = document.getElementById('btnLogout');
+  const statusDiv = document.getElementById('status');
+
+  const siteInput = document.getElementById('siteInput');
+  const userInput = document.getElementById('userInput');
+  const passInput = document.getElementById('passInput');
+  const addBtn = document.getElementById('addBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  const editInfo = document.getElementById('editInfo');
+  const goToViewBtn = document.getElementById('goToViewBtn');
+
+  const searchInput = document.getElementById('searchInput');
+  const tableBody = document.getElementById('passwordTableBody');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  function setStatus(message, type = "") {
+    statusDiv.textContent = message || "";
+    statusDiv.className = "";
+    if (type) statusDiv.classList.add(type);
+  }
+
+  function setActiveNav(button) {
+    [navAuth, navManage, navView].forEach(b => b.classList.remove('active'));
+    button.classList.add('active');
+  }
+
+  function showPage(name) {
+    pageAuth.classList.add('hidden');
+    pageManage.classList.add('hidden');
+    pageView.classList.add('hidden');
+
+    if (name === 'auth') {
+      pageAuth.classList.remove('hidden');
+      setActiveNav(navAuth);
+    }
+    if (name === 'manage') {
+      pageManage.classList.remove('hidden');
+      setActiveNav(navManage);
+    }
+    if (name === 'view') {
+      pageView.classList.remove('hidden');
+      setActiveNav(navView);
+    }
+  }
+
+  function clearEditState() {
+    editingIndex = null;
+    editInfo.classList.add('hidden');
+    cancelEditBtn.classList.add('hidden');
+    addBtn.textContent = 'Save Password';
+    siteInput.value = '';
+    userInput.value = '';
+    passInput.value = '';
+  }
+
+  async function callInit(master) {
+    try {
+      const res = await fetch('/api/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: master
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        setStatus(text, 'error');
+        return false;
+      }
+      initialized = true;
+      btnLogout.disabled = false;
+      navManage.disabled = false;
+      navView.disabled = false;
+      setStatus('Logged in with master PIN.', 'success');
+      await loadPasswords();
+      return true;
+    } catch (err) {
+      setStatus('Error calling /api/init: ' + err, 'error');
+      return false;
+    }
+  }
+
+  async function callRegister(master) {
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: master
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        setStatus('Register failed: ' + text, 'error');
+        return false;
+      }
+      initialized = true;
+      passwords = [];
+      btnLogout.disabled = false;
+      navManage.disabled = false;
+      navView.disabled = false;
+      setStatus('New master PIN set. Vault is empty.', 'success');
+      await loadPasswords();
+      return true;
+    } catch (err) {
+      setStatus('Error calling /api/register: ' + err, 'error');
+      return false;
+    }
+  }
+
+  async function loadPasswords() {
+    if (!initialized) return;
+    try {
+      const res = await fetch('/api/passwords');
+      if (!res.ok) {
+        setStatus('Failed to load passwords.', 'error');
+        return;
+      }
+      passwords = await res.json();
+      renderTable();
+    } catch (err) {
+      setStatus('Error loading passwords: ' + err, 'error');
+    }
+  }
+
+  async function addOrUpdatePassword() {
+    if (!initialized) {
+      alert('Login first.');
+      return;
+    }
+
+    const site = siteInput.value.trim();
+    const username = userInput.value.trim();
+    const password = passInput.value.trim();
+
+    if (!site || !username || !password) {
+      alert('Fill all fields.');
+      return;
+    }
+
+    const entry = { site, username, password };
+
+    try {
+      if (editingIndex === null) {
+        // add
+        const res = await fetch('/api/passwords', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        const text = await res.text();
+        if (!res.ok) {
+          alert('Failed to add: ' + text);
+          return;
+        }
+        setStatus('Password saved.', 'success');
+      } else {
+        // update
+        const res = await fetch('/api/passwords/' + editingIndex, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        const text = await res.text();
+        if (!res.ok) {
+          alert('Failed to update: ' + text);
+          return;
+        }
+        setStatus('Password updated.', 'success');
+      }
+
+      clearEditState();
+      await loadPasswords();
+    } catch (err) {
+      alert('Error saving password: ' + err);
+    }
+  }
+
+  async function deletePassword(index) {
+    if (!initialized) {
+      alert('Login first.');
+      return;
+    }
+    if (!confirm('Delete this entry?')) return;
+
+    try {
+      const res = await fetch('/api/passwords/' + index, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        alert('Failed to delete');
+        return;
+      }
+      setStatus('Password deleted.', 'success');
+      clearEditState();
+      await loadPasswords();
+    } catch (err) {
+      alert('Error deleting: ' + err);
+    }
+  }
+
+  function startEdit(entry) {
+    editingIndex = entry.index;
+    siteInput.value = entry.site;
+    userInput.value = entry.username;
+    passInput.value = entry.password;
+    editInfo.classList.remove('hidden');
+    cancelEditBtn.classList.remove('hidden');
+    addBtn.textContent = 'Update Password';
+    showPage('manage');
+  }
+
+  // nav handlers
+  navAuth.addEventListener('click', () => showPage('auth'));
+  navManage.addEventListener('click', () => {
+    if (!initialized) {
+      alert('Login first.');
+      return;
+    }
+    showPage('manage');
+  });
+  navView.addEventListener('click', () => {
+    if (!initialized) {
+      alert('Login first.');
+      return;
+    }
+    showPage('view');
+    renderTable();
+  });
+
+  // auth buttons
+  btnLogin.addEventListener('click', async () => {
+    const master = masterInput.value.trim();
+    if (!master) {
+      alert('Enter master PIN.');
+      return;
+    }
+    const ok = await callInit(master);
+    if (ok) showPage('manage');
+  });
+
+  btnRegister.addEventListener('click', async () => {
+    const master = masterInput.value.trim();
+    if (!master) {
+      alert('Enter master PIN to register.');
+      return;
+    }
+    if (!confirm('This will ERASE all existing passwords and set a NEW master PIN. Continue?')) {
+      return;
+    }
+    const ok = await callRegister(master);
+    if (ok) showPage('manage');
+  });
+
+  btnLogout.addEventListener('click', () => {
+    initialized = false;
+    passwords = [];
+    masterInput.value = '';
+    setStatus('Logged out on this browser. (Backend file is unchanged.)', 'success');
+    btnLogout.disabled = true;
+    navManage.disabled = true;
+    navView.disabled = true;
+    clearEditState();
+    showPage('auth');
+    renderTable();
+  });
+
+  // manage page
+  addBtn.addEventListener('click', addOrUpdatePassword);
+  cancelEditBtn.addEventListener('click', clearEditState);
+  goToViewBtn.addEventListener('click', () => {
+    showPage('view');
+    renderTable();
+  });
+
+  // table rendering
+  function renderTable() {
+    const query = searchInput.value.trim().toLowerCase();
+    tableBody.innerHTML = '';
+
+    const filtered = passwords
+      .map((entry, index) => ({ ...entry, index }))
+      .filter(entry => {
+        if (!query) return true;
+        return entry.site.toLowerCase().includes(query) ||
+               entry.username.toLowerCase().includes(query);
+      });
+
+    filtered.forEach((entry, visibleIndex) => {
+      const tr = document.createElement('tr');
+
+      const tdIndex = document.createElement('td');
+      tdIndex.textContent = visibleIndex + 1;
+      tr.appendChild(tdIndex);
+
+      const tdSite = document.createElement('td');
+      tdSite.textContent = entry.site;
+      tr.appendChild(tdSite);
+
+      const tdUser = document.createElement('td');
+      tdUser.textContent = entry.username;
+      tr.appendChild(tdUser);
+
+      const tdPass = document.createElement('td');
+      tdPass.textContent = entry.password;
+      tr.appendChild(tdPass);
+
+      const tdActions = document.createElement('td');
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.className = 'btn btn-secondary';
+      editBtn.style.fontSize = '11px';
+      editBtn.addEventListener('click', () => startEdit(entry));
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.className = 'btn btn-danger';
+      delBtn.style.fontSize = '11px';
+      delBtn.style.marginLeft = '4px';
+      delBtn.addEventListener('click', () => deletePassword(entry.index));
+
+      tdActions.appendChild(editBtn);
+      tdActions.appendChild(delBtn);
+      tr.appendChild(tdActions);
+
+      tableBody.appendChild(tr);
+    });
+
+    emptyMsg.classList.toggle('hidden', filtered.length !== 0);
+  }
+
+  searchInput.addEventListener('input', renderTable);
+
+  showPage('auth');
+</script>
+</body>
+</html>
